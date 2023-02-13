@@ -56,9 +56,11 @@ class MainActivity : Activity() {
     private fun handleButtonPress() {
         Log.d(tag, "Handle button press")
 
+        connect()
+
         if (usbPermission === UsbPermission.Unknown || usbPermission === UsbPermission.Denied) {
             Log.d(tag, "Permission not yet granted")
-            connect()
+            button.text = getString(R.string.request_permission)
         }
 
         if (usbPermission == UsbPermission.Granted){
@@ -121,24 +123,33 @@ class MainActivity : Activity() {
 
         val availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager)
         if (availableDrivers.isEmpty()) {
+            usbPermission = UsbPermission.Denied
+            Log.d(tag, "Connection Failed: No available drivers")
             return
         }
 
         val driver = availableDrivers[0] // Use first available driver
 
         if (driver == null) {
+            usbPermission = UsbPermission.Denied
             Log.d(tag, "Connection Failed: No driver for device")
             return
         }
 
         val device: UsbDevice? = driver.device
         if (device == null) {
+            usbPermission = UsbPermission.Denied
             Log.d(tag, "Connection Failed: Device not found")
             return
         }
 
         usbSerialPort = driver.ports[0]
-        val usbConnection = usbManager.openDevice(driver.device)
+        val usbConnection = if (usbManager.hasPermission(driver.device)) {
+            usbManager.openDevice(driver.device)
+        } else {
+            null
+        }
+
         if (usbConnection == null && (usbPermission === UsbPermission.Unknown || usbPermission === UsbPermission.Denied) && !usbManager.hasPermission(driver.device)) {
             usbPermission = UsbPermission.Requested
             val usbPermissionIntent = PendingIntent.getBroadcast(this, 0, Intent(intentActionGrantUsb), 0)
