@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Sunmi Scale Adapter</string>
+    <string name="query_weight">Query Weight</string>
+    <string name="request_permission">Request USB Permission</string>
+</resources>
