@@ -28,6 +28,9 @@ class MainActivity : Activity() {
     private var usbPermission : UsbPermission = UsbPermission.Unknown
     private lateinit var button: Button
 
+    private val packetLenErr = 4
+    private val packetLenSuccess = 8
+
     // Usb Port Parameters
     private val baudRate = 9600
     private val dataBits = 7
@@ -78,10 +81,11 @@ class MainActivity : Activity() {
                 response += String(res).slice(IntRange(0, len-1))
                 Log.d(tag, "Current Packet: $response | Length: ${response.length}")
 
-                if (response.length == 4 && response[1] == '?' && response[2] == 'd') {
+                // Underweight packet contains "?d" and is 4 bytes long
+                if (response.length == packetLenErr && response[1] == '?' && response[2] == 'd') {
                     Log.d(tag, "Underweight error detected!")
                     invalidPacket = false
-                } else if (response.length == 8) {
+                } else if (response.length == packetLenSuccess) {
                     invalidPacket = false
                 }
 
