@@ -68,6 +68,7 @@ class MainActivity : Activity() {
             var totalBytes = 0
             usbSerialPort.write("W\r\n".toByteArray(), waitMs);
             var invalidPacket = true
+            var attempt = 0
 
             while (invalidPacket) {
                 val res = ByteArray(20)
@@ -84,10 +85,21 @@ class MainActivity : Activity() {
                     invalidPacket = false
                 }
 
+                // Break if we did not receive enough data after trying
+                attempt += 1
+                if (attempt > 4) {
+                    Log.d(tag, "Connection Failed: Check cable connection")
+                    invalidPacket = false
+                }
+
             }
 
-            Log.d(tag, "Complete Packet: $response | Length: $totalBytes")
-            Toast.makeText(this, response, Toast.LENGTH_LONG).show() // Show weight
+            // Only display if
+            if (response.isNotEmpty()) {
+                Log.d(tag, "Complete Packet: $response | Length: $totalBytes")
+                Toast.makeText(this, response, Toast.LENGTH_LONG).show() // Show weight
+            }
+
         }
 
     }
